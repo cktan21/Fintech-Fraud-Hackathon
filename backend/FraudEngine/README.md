@@ -53,9 +53,9 @@ Check if the service and models are ready.
 **Response**:
 ```json
 {
-  "status": "healthy",
-  "model_loaded": true,
-  "message": "Fraud detection system is ready"
+    "status": "healthy",
+    "model_loaded": true,
+    "message": "Fraud detection system is ready"
 }
 ```
 
@@ -65,36 +65,36 @@ Analyze a single transaction for fraud.
 **Request Body**:
 ```json
 {
-  "Time": "14:30:25",
-  "Date": "2022-10-07",
-  "Sender_account": 8724731955,
-  "Receiver_account": 2769355426,
-  "Amount": 15000.00,
-  "Payment_currency": "UK pounds",
-  "Received_currency": "Dirham",
-  "Sender_bank_location": "UK",
-  "Receiver_bank_location": "UAE",
-  "Payment_type": "Cross-border"
+    "Time": "14:30:25",
+    "Date": "2022-10-07",
+    "Sender_account": 8724731955,
+    "Receiver_account": 2769355426,
+    "Amount": 15000.00,
+    "Payment_currency": "UK pounds",
+    "Received_currency": "Dirham",
+    "Sender_bank_location": "UK",
+    "Receiver_bank_location": "UAE",
+    "Payment_type": "Cross-border"
 }
 ```
 
 **Response**:
 ```json
 {
-  "is_fraud": true,
-  "fraud_type": "Smurfing",
-  "confidence": 0.85,
-  "legitimacy_score": 0.35,
-  "fraud_probability": 0.92,
-  "top_3_fraud_types": ["Smurfing", "Structuring", "Cash_Withdrawal"],
-  "top_3_probabilities": [0.85, 0.10, 0.05],
-  "risk_factors": [
-    "Cross-border transaction",
-    "High fraud probability",
-    "Currency conversion involved"
-  ],
-  "recommendation": "BLOCK",
-  "stage": "Stage 3: Type Identified"
+    "is_fraud": true,
+    "fraud_type": "Smurfing",
+    "confidence": 0.85,
+    "legitimacy_score": 0.35,
+    "fraud_probability": 0.92,
+    "top_3_fraud_types": ["Smurfing", "Structuring", "Cash_Withdrawal"],
+    "top_3_probabilities": [0.85, 0.10, 0.05],
+    "risk_factors": [
+        "Cross-border transaction",
+        "High fraud probability",
+        "Currency conversion involved"
+    ],
+    "recommendation": "BLOCK",
+    "stage": "Stage 3: Type Identified"
 }
 ```
 
@@ -104,77 +104,77 @@ Analyze multiple transactions in one request (more efficient).
 **Request Body**:
 ```json
 {
-  "transactions": [
-    {
-      "Time": "14:30:25",
-      "Date": "2022-10-07",
-      "Sender_account": 8724731955,
-      "Receiver_account": 2769355426,
-      "Amount": 1459.15,
-      "Payment_currency": "UK pounds",
-      "Received_currency": "UK pounds",
-      "Sender_bank_location": "UK",
-      "Receiver_bank_location": "UK",
-      "Payment_type": "Cash Deposit"
-    },
-    {
-      "Time": "10:15:30",
-      "Date": "2022-10-07",
-      "Sender_account": 1234567890,
-      "Receiver_account": 9876543210,
-      "Amount": 25000.00,
-      "Payment_currency": "US Dollar",
-      "Received_currency": "Euro",
-      "Sender_bank_location": "USA",
-      "Receiver_bank_location": "Nigeria",
-      "Payment_type": "Cash Withdrawal"
-    }
-  ]
+    "transactions": [
+        {
+            "Time": "14:30:25",
+            "Date": "2022-10-07",
+            "Sender_account": 8724731955,
+            "Receiver_account": 2769355426,
+            "Amount": 1459.15,
+            "Payment_currency": "UK pounds",
+            "Received_currency": "UK pounds",
+            "Sender_bank_location": "UK",
+            "Receiver_bank_location": "UK",
+            "Payment_type": "Cash Deposit"
+        },
+        {
+            "Time": "10:15:30",
+            "Date": "2022-10-07",
+            "Sender_account": 1234567890,
+            "Receiver_account": 9876543210,
+            "Amount": 25000.00,
+            "Payment_currency": "US Dollar",
+            "Received_currency": "Euro",
+            "Sender_bank_location": "USA",
+            "Receiver_bank_location": "Nigeria",
+            "Payment_type": "Cash Withdrawal"
+        }
+    ]
 }
 ```
 
 **Response**:
 ```json
 {
-  "results": [
-    {
-      "is_fraud": false,
-      "fraud_type": "Normal",
-      "confidence": 0.0,
-      "legitimacy_score": 0.95,
-      "fraud_probability": 0.0,
-      "top_3_fraud_types": [],
-      "top_3_probabilities": [],
-      "risk_factors": [],
-      "recommendation": "APPROVE",
-      "stage": "Stage 1: Legitimate"
-    },
-    {
-      "is_fraud": true,
-      "fraud_type": "Cash_Withdrawal",
-      "confidence": 0.78,
-      "legitimacy_score": 0.25,
-      "fraud_probability": 0.89,
-      "top_3_fraud_types": ["Cash_Withdrawal", "Structuring", "Smurfing"],
-      "top_3_probabilities": [0.78, 0.15, 0.07],
-      "risk_factors": [
-        "High-risk country",
-        "High amount (>$10,000)",
-        "High fraud probability"
-      ],
-      "recommendation": "BLOCK",
-      "stage": "Stage 3: Type Identified"
+    "results": [
+        {
+            "is_fraud": false,
+            "fraud_type": "Normal",
+            "confidence": 0.0,
+            "legitimacy_score": 0.95,
+            "fraud_probability": 0.0,
+            "top_3_fraud_types": [],
+            "top_3_probabilities": [],
+            "risk_factors": [],
+            "recommendation": "APPROVE",
+            "stage": "Stage 1: Legitimate"
+        },
+        {
+            "is_fraud": true,
+            "fraud_type": "Cash_Withdrawal",
+            "confidence": 0.78,
+            "legitimacy_score": 0.25,
+            "fraud_probability": 0.89,
+            "top_3_fraud_types": ["Cash_Withdrawal", "Structuring", "Smurfing"],
+            "top_3_probabilities": [0.78, 0.15, 0.07],
+            "risk_factors": [
+                "High-risk country",
+                "High amount (>$10,000)",
+                "High fraud probability"
+            ],
+            "recommendation": "BLOCK",
+            "stage": "Stage 3: Type Identified"
+        }
+    ],
+    "summary": {
+        "total_transactions": 2,
+        "fraud_detected": 1,
+        "fraud_percentage": 50.0,
+        "recommendations": {
+            "APPROVE": 1,
+            "BLOCK": 1
+        }
     }
-  ],
-  "summary": {
-    "total_transactions": 2,
-    "fraud_detected": 1,
-    "fraud_percentage": 50.0,
-    "recommendations": {
-      "APPROVE": 1,
-      "BLOCK": 1
-    }
-  }
 }
 ```
 

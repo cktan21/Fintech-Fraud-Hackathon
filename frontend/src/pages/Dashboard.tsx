@@ -9,13 +9,17 @@ import { StatsTab } from '@/components/StatsTab';
 import { ReportGenerator } from '@/components/ReportGenerator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Shield } from 'lucide-react';
 
 const Dashboard = () => {
   const { isReady, addTransaction, getTransactions, updateTransactionStatus } = useDatabase();
-  const { analyzeFraud } = useFraudDetection();
+  const { analyzeFraud, analyzeBatch } = useFraudDetection();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -24,41 +28,93 @@ const Dashboard = () => {
     }
   }, [isReady]);
 
+  useEffect(() => {
+    let filtered = transactions;
+    
+    if (paymentTypeFilter !== 'all') {
+      filtered = filtered.filter(t => t.payment_type === paymentTypeFilter);
+    }
+    
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(t => t.status === statusFilter);
+    }
+    
+    setFilteredTransactions(filtered);
+  }, [transactions, paymentTypeFilter, statusFilter]);
+
   const refreshTransactions = () => {
     const txs = getTransactions();
     setTransactions(txs);
   };
 
-  const handleAddTransaction = (txData: any) => {
-    const { is_fraudulent, fraud_score } = analyzeFraud(txData);
+  const handleAddTransaction = async (txData: any) => {
+    const analysisResult = await analyzeFraud(txData);
+    
+    const status = analysisResult.recommendation === 'APPROVE' ? 'approved' : 'pending';
     
     const transaction: Omit<Transaction, 'id'> = {
       ...txData,
-      is_fraudulent,
-      fraud_score,
-      status: 'pending',
+      is_fraudulent: analysisResult.is_fraudulent,
+      fraud_score: analysisResult.fraud_score,
+      fraud_type: analysisResult.fraud_type,
+      confidence: analysisResult.confidence,
+      legitimacy_score: analysisResult.legitimacy_score,
+      fraud_probability: analysisResult.fraud_probability,
+      top_3_fraud_types: analysisResult.top_3_fraud_types,
+      top_3_probabilities: analysisResult.top_3_probabilities,
+      risk_factors: analysisResult.risk_factors,
+      recommendation: analysisResult.recommendation,
+      stage: analysisResult.stage,
+      status,
       created_at: new Date().toISOString()
     };
 
     addTransaction(transaction);
     refreshTransactions();
 
-    if (is_fraudulent) {
+    if (status === 'approved') {
       toast({
-        title: '⚠️ Fraudulent Transaction Detected',
-        description: `Transaction flagged with ${fraud_score}% fraud score. Review required.`,
-        variant: 'destructive'
+        title: '✓ Transaction Approved',
+        description: `Transaction automatically approved (${analysisResult.fraud_score}% fraud score)`
       });
     } else {
       toast({
-        title: 'Transaction Added',
-        description: `Transaction added with ${fraud_score}% fraud score`
+        title: '⚠️ Review Required',
+        description: `Transaction flagged for review. Recommendation: ${analysisResult.recommendation}`,
+        variant: 'destructive'
       });
     }
   };
 
-  const handleBulkUpload = (txs: any[]) => {
-    txs.forEach(tx => handleAddTransaction(tx));
+  const handleBulkUpload = async (txs: any[]) => {
+    toast({
+      title: 'Processing Batch',
+      description: `Analyzing ${txs.length} transactions...`
+    });
+
+    const analysisResults = await analyzeBatch(txs);
+    
+    analysisResults.forEach((result: any) => {
+      const status = result.recommendation === 'APPROVE' ? 'approved' : 'pending';
+      
+      const transaction: Omit<Transaction, 'id'> = {
+        ...result,
+        status,
+        created_at: new Date().toISOString()
+      };
+      
+      addTransaction(transaction);
+    });
+    
+    refreshTransactions();
+
+    const approvedCount = analysisResults.filter((r: any) => r.recommendation === 'APPROVE').length;
+    const reviewCount = analysisResults.length - approvedCount;
+
+    toast({
+      title: 'Batch Processing Complete',
+      description: `${approvedCount} approved, ${reviewCount} pending review`
+    });
   };
 
   const handleBlockTransaction = (id: number) => {
@@ -115,7 +171,7 @@ const Dashboard = () => {
           <TabsContent value="transactions" className="space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                   <CardTitle>Transaction Management</CardTitle>
                   <div className="flex gap-2">
                     <TransactionUpload onUpload={handleBulkUpload} />
@@ -123,9 +179,39 @@ const Dashboard = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                <div className="flex gap-4 flex-wrap">
+                  <div className="flex-1 min-w-[200px]">
+                    <Select value={paymentTypeFilter} onValueChange={setPaymentTypeFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Filter by Payment Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Payment Types</SelectItem>
+                        <SelectItem value="Cash Deposit">Cash Deposit</SelectItem>
+                        <SelectItem value="Cash Withdrawal">Cash Withdrawal</SelectItem>
+                        <SelectItem value="Wire Transfer">Wire Transfer</SelectItem>
+                        <SelectItem value="Cross-border">Cross-border</SelectItem>
+                        <SelectItem value="Credit Card">Credit Card</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex-1 min-w-[200px]">
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Filter by Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="approved">Approved</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="blocked">Blocked</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <TransactionList
-                  transactions={transactions}
+                  transactions={filteredTransactions}
                   onBlock={handleBlockTransaction}
                   onApprove={handleApproveTransaction}
                 />

@@ -2,7 +2,8 @@ import { Transaction } from '@/types/transaction';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -11,6 +12,8 @@ interface TransactionListProps {
 }
 
 export const TransactionList = ({ transactions, onBlock, onApprove }: TransactionListProps) => {
+  const navigate = useNavigate();
+  
   return (
     <div className="rounded-md border">
       <Table>
@@ -22,6 +25,7 @@ export const TransactionList = ({ transactions, onBlock, onApprove }: Transactio
             <TableHead>Amount</TableHead>
             <TableHead>Type</TableHead>
             <TableHead>Fraud Risk</TableHead>
+            <TableHead>Recommendation</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -29,7 +33,7 @@ export const TransactionList = ({ transactions, onBlock, onApprove }: Transactio
         <TableBody>
           {transactions.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center text-muted-foreground">
+              <TableCell colSpan={9} className="text-center text-muted-foreground">
                 No transactions yet
               </TableCell>
             </TableRow>
@@ -61,6 +65,17 @@ export const TransactionList = ({ transactions, onBlock, onApprove }: Transactio
                   </div>
                 </TableCell>
                 <TableCell>
+                  {tx.recommendation && (
+                    <Badge variant={
+                      tx.recommendation === 'APPROVE' ? 'default' : 
+                      tx.recommendation === 'BLOCK' ? 'destructive' : 
+                      'outline'
+                    }>
+                      {tx.recommendation}
+                    </Badge>
+                  )}
+                </TableCell>
+                <TableCell>
                   <Badge
                     variant={
                       tx.status === 'approved'
@@ -74,16 +89,26 @@ export const TransactionList = ({ transactions, onBlock, onApprove }: Transactio
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {tx.status === 'pending' && (
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => onApprove(tx.id!)}>
-                        <CheckCircle className="h-4 w-4" />
+                  <div className="flex gap-2">
+                    {tx.status === 'pending' && (
+                      <>
+                        <Button size="sm" variant="ghost" onClick={() => navigate(`/transaction/${tx.id}`)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => onApprove(tx.id!)}>
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => onBlock(tx.id!)}>
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                    {tx.status !== 'pending' && (
+                      <Button size="sm" variant="ghost" onClick={() => navigate(`/transaction/${tx.id}`)}>
+                        <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => onBlock(tx.id!)}>
-                        <XCircle className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))

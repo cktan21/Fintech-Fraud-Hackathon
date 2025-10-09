@@ -8,7 +8,7 @@ echo "      Please wait for 'API is now accepting requests' message"
 echo ""
 
 # Check if data file exists
-DATA_FILE="../../data/SAML-D.csv"
+DATA_FILE="./data/SAML-D.csv"
 if [ ! -f "$DATA_FILE" ]; then
     echo "❌ ERROR: Data file not found at $DATA_FILE"
     echo "   Please ensure the dataset is in the correct location"

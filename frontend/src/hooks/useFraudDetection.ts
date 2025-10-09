@@ -1,38 +1,40 @@
-import { Transaction } from '@/types/transaction';
+import { analyzeSingleTransaction, analyzeBatchTransactions } from '@/services/fraudApi';
 
 export const useFraudDetection = () => {
-  const analyzeFraud = (transaction: Omit<Transaction, 'id' | 'is_fraudulent' | 'fraud_score' | 'status' | 'created_at'>): { is_fraudulent: boolean; fraud_score: number } => {
-    let score = 0;
-    
-    // High amount transactions are riskier
-    if (transaction.amount > 10000) score += 30;
-    else if (transaction.amount > 5000) score += 15;
-    
-    // Cross-border transactions
-    if (transaction.sender_bank_location !== transaction.receiver_bank_location) {
-      score += 20;
-    }
-    
-    // Currency mismatch
-    if (transaction.payment_currency !== transaction.received_currency) {
-      score += 15;
-    }
-    
-    // Specific payment types
-    if (transaction.payment_type === 'Wire Transfer') score += 10;
-    if (transaction.payment_type === 'Cash') score += 25;
-    
-    // Round numbers are suspicious
-    if (transaction.amount % 1000 === 0) score += 10;
-    
-    // Add some randomness to simulate ML model
-    score += Math.random() * 20;
-    
-    const fraud_score = Math.min(Math.round(score), 100);
-    const is_fraudulent = fraud_score > 60;
-    
-    return { is_fraudulent, fraud_score };
+  const analyzeFraud = async (transaction: any) => {
+    const result = await analyzeSingleTransaction(transaction);
+    return {
+      is_fraudulent: result.is_fraud,
+      fraud_score: Math.round(result.fraud_probability * 100),
+      fraud_type: result.fraud_type,
+      confidence: result.confidence,
+      legitimacy_score: result.legitimacy_score,
+      fraud_probability: result.fraud_probability,
+      top_3_fraud_types: result.top_3_fraud_types,
+      top_3_probabilities: result.top_3_probabilities,
+      risk_factors: result.risk_factors,
+      recommendation: result.recommendation,
+      stage: result.stage
+    };
   };
 
-  return { analyzeFraud };
+  const analyzeBatch = async (transactions: any[]) => {
+    const result = await analyzeBatchTransactions(transactions);
+    return result.results.map((r, i) => ({
+      ...transactions[i],
+      is_fraudulent: r.is_fraud,
+      fraud_score: Math.round(r.fraud_probability * 100),
+      fraud_type: r.fraud_type,
+      confidence: r.confidence,
+      legitimacy_score: r.legitimacy_score,
+      fraud_probability: r.fraud_probability,
+      top_3_fraud_types: r.top_3_fraud_types,
+      top_3_probabilities: r.top_3_probabilities,
+      risk_factors: r.risk_factors,
+      recommendation: r.recommendation,
+      stage: r.stage
+    }));
+  };
+
+  return { analyzeFraud, analyzeBatch };
 };

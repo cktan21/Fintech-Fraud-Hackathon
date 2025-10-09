@@ -30,7 +30,16 @@ export const useDatabase = () => {
           is_fraudulent INTEGER,
           fraud_score REAL,
           status TEXT,
-          created_at TEXT
+          created_at TEXT,
+          fraud_type TEXT,
+          confidence REAL,
+          legitimacy_score REAL,
+          fraud_probability REAL,
+          top_3_fraud_types TEXT,
+          top_3_probabilities TEXT,
+          risk_factors TEXT,
+          recommendation TEXT,
+          stage TEXT
         )
       `);
       
@@ -49,8 +58,10 @@ export const useDatabase = () => {
         time, date, sender_account, receiver_account, amount,
         payment_currency, received_currency, sender_bank_location,
         receiver_bank_location, payment_type, is_fraudulent,
-        fraud_score, status, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        fraud_score, status, created_at, fraud_type, confidence,
+        legitimacy_score, fraud_probability, top_3_fraud_types,
+        top_3_probabilities, risk_factors, recommendation, stage
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       transaction.time,
       transaction.date,
@@ -65,7 +76,16 @@ export const useDatabase = () => {
       transaction.is_fraudulent ? 1 : 0,
       transaction.fraud_score,
       transaction.status,
-      transaction.created_at
+      transaction.created_at,
+      transaction.fraud_type || null,
+      transaction.confidence || null,
+      transaction.legitimacy_score || null,
+      transaction.fraud_probability || null,
+      transaction.top_3_fraud_types ? JSON.stringify(transaction.top_3_fraud_types) : null,
+      transaction.top_3_probabilities ? JSON.stringify(transaction.top_3_probabilities) : null,
+      transaction.risk_factors ? JSON.stringify(transaction.risk_factors) : null,
+      transaction.recommendation || null,
+      transaction.stage || null
     ]);
   };
 
@@ -90,7 +110,16 @@ export const useDatabase = () => {
       is_fraudulent: row[11] === 1,
       fraud_score: row[12] as number,
       status: row[13] as 'pending' | 'approved' | 'blocked',
-      created_at: row[14] as string
+      created_at: row[14] as string,
+      fraud_type: row[15] as string | undefined,
+      confidence: row[16] as number | undefined,
+      legitimacy_score: row[17] as number | undefined,
+      fraud_probability: row[18] as number | undefined,
+      top_3_fraud_types: row[19] ? JSON.parse(row[19] as string) : undefined,
+      top_3_probabilities: row[20] ? JSON.parse(row[20] as string) : undefined,
+      risk_factors: row[21] ? JSON.parse(row[21] as string) : undefined,
+      recommendation: row[22] as 'APPROVE' | 'BLOCK' | 'REVIEW' | undefined,
+      stage: row[23] as string | undefined
     }));
   };
 

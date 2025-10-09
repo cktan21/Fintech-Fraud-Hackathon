@@ -9,7 +9,7 @@ echo       Please wait for 'API is now accepting requests' message
 echo.
 
 REM Check if data file exists
-if not exist "..\..\data\SAML-D.csv" (
+if not exist ".\data\SAML-D.csv" (
     echo ❌ ERROR: Data file not found at ..\..\data\SAML-D.csv
     echo    Please ensure the dataset is in the correct location
     pause
