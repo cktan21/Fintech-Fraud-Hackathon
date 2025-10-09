@@ -22,7 +22,7 @@ pip install -r requirements.txt
 ```
 
 2. **Ensure data file exists**:
-Place the `SAML-D.csv` dataset in `../../data/SAML-D.csv` (relative to this directory)
+Place the `SAML-D.csv` dataset in `./data/SAML-D.csv` (relative to this directory)
 
 ## Running the API
 
